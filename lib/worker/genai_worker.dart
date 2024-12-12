@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:js_interop';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 

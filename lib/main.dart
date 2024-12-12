@@ -8,7 +8,7 @@ void main() {
 }
 
 class MainApp extends StatelessWidget {
-  final genAi = GenaiWorker();
+  final _worker = GenaiWorker();
   MainApp({super.key});
 
   @override
@@ -20,25 +20,23 @@ class MainApp extends StatelessWidget {
           child: Column(
             children: [
               Expanded(
-                  child: ListView(
-                children: const [
-                  ChatBubbleWidget(
-                      isMine: true,
-                      photoUrl:
-                          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                      message:
-                          "This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me"),
-                  ChatBubbleWidget(
-                      isMine: false,
-                      photoUrl:
-                          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                      message:
-                          "This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me This is a message from me"),
-                ],
-              )),
+                  child: StreamBuilder<List<ChatContent>>(
+                      stream: _worker.stream,
+                      builder: (context, snapshot) {
+                        final List<ChatContent> data = snapshot.data ?? [];
+                        return ListView(
+                          children: data.map((e) {
+                            final bool isMine = e.sender == Sender.user;
+                            return ChatBubbleWidget(
+                                isMine: isMine,
+                                photoUrl: null,
+                                message: e.message);
+                          }).toList(),
+                        );
+                      })),
               MessageBox(
                 onSendMessage: (String value) {
-                  print('public chat: $value');
+                  _worker.sendToGemini(value);
                 },
               )
             ],
