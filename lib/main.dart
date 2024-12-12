@@ -37,6 +37,8 @@ class MainApp extends StatelessWidget {
               MessageBox(
                 onSendMessage: (String value) {
                   print('public chat: $value');
+                  const String apiKey = String.fromEnvironment('API_KEY');
+                  print('API key $apiKey');
                 },
               )
             ],
