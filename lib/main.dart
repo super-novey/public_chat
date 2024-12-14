@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:public_chat/bloc/genai_bloc.dart';
+import 'package:public_chat/data/chat_content.dart';
 import 'package:public_chat/widgets/chat_bubble_widget.dart';
 import 'package:public_chat/widgets/message_box.dart';
 import 'package:public_chat/worker/genai_worker.dart';
 
 void main() {
-  runApp(MainApp());
+  runApp(BlocProvider(
+    create: (context) => GenaiBloc(),
+    child: MainApp(),
+  ));
 }
 
 class MainApp extends StatelessWidget {
-  final _worker = GenaiWorker();
   MainApp({super.key});
 
   @override
@@ -19,24 +24,23 @@ class MainApp extends StatelessWidget {
         body: Center(
           child: Column(
             children: [
-              Expanded(
-                  child: StreamBuilder<List<ChatContent>>(
-                      stream: _worker.stream,
-                      builder: (context, snapshot) {
-                        final List<ChatContent> data = snapshot.data ?? [];
-                        return ListView(
-                          children: data.map((e) {
-                            final bool isMine = e.sender == Sender.user;
-                            return ChatBubbleWidget(
-                                isMine: isMine,
-                                photoUrl: null,
-                                message: e.message);
-                          }).toList(),
-                        );
-                      })),
+              Expanded(child:
+                  BlocBuilder<GenaiBloc, GenaiState>(builder: (context, state) {
+                final List<ChatContent> data = [];
+                if (state is MessageUpdate) {
+                  data.addAll(state.contents);
+                }
+                return ListView(
+                  children: data.map((e) {
+                    final bool isMine = e.sender == Sender.user;
+                    return ChatBubbleWidget(
+                        isMine: isMine, photoUrl: null, message: e.message);
+                  }).toList(),
+                );
+              })),
               MessageBox(
                 onSendMessage: (String value) {
-                  _worker.sendToGemini(value);
+                  context.read<GenaiBloc>().add(SendMessageEvent(value));
                 },
               )
             ],
